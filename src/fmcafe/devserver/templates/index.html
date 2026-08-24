@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>F&amp;M Cafe — Receipt Preview</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #ddd;
+      padding: 2rem;
+    }
+    h1 { font-size: 1.2rem; }
+    .themes { margin-bottom: 2rem; }
+    .themes a {
+      display: inline-block;
+      margin-right: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    .receipt {
+      font-family: "Courier New", monospace;
+      background: #fff;
+      width: 280px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    .logo { display: block; width: 100%; margin: 0 auto 0.5rem; }
+    .title { text-align: center; font-weight: bold; font-size: 1.1rem; }
+    .timestamp { text-align: center; font-size: 0.8rem; margin-bottom: 0.5rem; }
+    .divider { border-top: 1px dashed #000; margin: 0.4rem 0; }
+    .section { font-weight: bold; margin-top: 0.3rem; }
+    .row { display: flex; justify-content: space-between; }
+    .row.empty-section { justify-content: center; color: #777; }
+    .row.total { font-weight: bold; margin-top: 0.4rem; }
+    .footer { text-align: center; margin-top: 0.8rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <h1>F&amp;M Cafe — Receipt Preview</h1>
+  <div class="themes">
+    {% for theme in themes %}
+      <a href="{{ url_for('preview', theme=theme) }}">{{ theme }}</a>
+    {% endfor %}
+  </div>
+  {% if receipt_html %}
+    {{ receipt_html | safe }}
+  {% else %}
+    <p>Pick a theme above to preview a receipt.</p>
+  {% endif %}
+</body>
+</html>
