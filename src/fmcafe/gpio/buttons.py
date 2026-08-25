@@ -3,12 +3,8 @@
 Update BUTTON_PINS with the actual GPIO pin each button is wired to.
 """
 
-import time
-from threading import Lock
-
-from gpiozero import Button
-
 from fmcafe.printer.driver import UsbPrinter
+from fmcafe.printer.throttle import PRINT_COOLDOWN_SECONDS, Throttle
 from fmcafe.receipts import THEMES
 
 BUTTON_PINS = {
@@ -17,29 +13,6 @@ BUTTON_PINS = {
     "restaurant": 4,
     "supermarket": 5,
 }
-
-# Minimum time between prints, shared across all buttons, so an excited kid
-# mashing buttons can't overrun the printer.
-PRINT_COOLDOWN_SECONDS = 10.0
-
-
-class Throttle:
-    """Tracks whether enough time has passed since the last allowed call."""
-
-    def __init__(self, cooldown_seconds: float, clock=time.monotonic):
-        self._cooldown_seconds = cooldown_seconds
-        self._clock = clock
-        self._lock = Lock()
-        self._last_allowed_at: float | None = None
-
-    def ready(self) -> bool:
-        """Returns True at most once per cooldown window, and marks that window used."""
-        with self._lock:
-            now = self._clock()
-            if self._last_allowed_at is not None and now - self._last_allowed_at < self._cooldown_seconds:
-                return False
-            self._last_allowed_at = now
-            return True
 
 
 def make_handler(theme: str, printer: UsbPrinter, throttle: Throttle):
@@ -57,8 +30,13 @@ def make_handler(theme: str, printer: UsbPrinter, throttle: Throttle):
 def run() -> None:
     from signal import pause  # not available on Windows; only needed on the Pi
 
+    from gpiozero import Button
+
     printer = UsbPrinter()
     throttle = Throttle(PRINT_COOLDOWN_SECONDS)
+    printer.print_ready()
+    throttle.ready()  # counts the ready print itself against the cooldown
+
     buttons = []
     for theme, pin in BUTTON_PINS.items():
         button = Button(pin)

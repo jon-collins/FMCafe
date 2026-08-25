@@ -27,3 +27,23 @@ def test_usb_driver_prints_garbled_lines_when_malfunctioning():
 
     printer._printer.cut.assert_called_once()
     assert printer._printer.image.call_count == 0
+
+
+def test_print_ready_prints_and_cuts():
+    with patch.object(driver, "Usb", return_value=MagicMock()):
+        printer = driver.UsbPrinter()
+        with patch.object(driver, "is_malfunctioning", return_value=False):
+            printer.print_ready()
+
+    printer._printer.cut.assert_called_once()
+    assert any("READY" in call.args[0] for call in printer._printer.text.call_args_list)
+
+
+def test_print_ready_can_also_glitch():
+    with patch.object(driver, "Usb", return_value=MagicMock()):
+        printer = driver.UsbPrinter()
+        with patch.object(driver, "is_malfunctioning", return_value=True):
+            printer.print_ready()
+
+    printer._printer.cut.assert_called_once()
+    assert not any("READY" in call.args[0] for call in printer._printer.text.call_args_list)

@@ -44,6 +44,12 @@ HOUSEHOLD = [
 ]
 
 
+TITLE = "F&M Bargains"
+FOOTER = "Have a great day!"
+SECTIONS = {"Groceries": GROCERIES, "Household": HOUSEHOLD}
+SECTION_ORDER = ["Groceries", "Household"]
+
+
 def generate() -> Receipt:
     groceries = [
         LineItem(name=item.name, price=item.price, category="Groceries")
@@ -55,9 +61,9 @@ def generate() -> Receipt:
     ]
     return Receipt(
         theme="supermarket",
-        title="F&M Bargains",
+        title=TITLE,
         items=groceries + household,
-        footer="Have a great day!",
+        footer=FOOTER,
         logo=logo_path("supermarket"),
-        section_order=["Groceries", "Household"],
+        section_order=SECTION_ORDER,
     )

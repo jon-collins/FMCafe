@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>F&amp;M Cafe</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #222;
+      color: #fff;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 { text-align: center; font-size: 2rem; }
+    .themes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      max-width: 1200px;
+      margin: 2rem auto 0;
+    }
+    .themes a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 2rem 1rem;
+      border-radius: 16px;
+      background: #444;
+      color: #fff;
+      text-decoration: none;
+      font-size: 1.5rem;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+    .themes a:active { transform: scale(0.97); }
+    .theme-icon {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .theme-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .theme-icon .initials {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>What are we playing today?</h1>
+  <div class="themes">
+    {% for theme, info in themes.items() %}
+      <a href="{{ url_for('order', theme=theme) }}">
+        <span class="theme-icon" style="{% if not info.has_logo %}background: {{ info.title | tile_color }}{% endif %}">
+          {% if info.has_logo %}
+            <img src="{{ url_for('theme_logo', theme=theme) }}" alt="">
+          {% else %}
+            <span class="initials">{{ info.title | initials }}</span>
+          {% endif %}
+        </span>
+        {{ info.title }}
+      </a>
+    {% endfor %}
+  </div>
+</body>
+</html>

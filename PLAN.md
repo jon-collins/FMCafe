@@ -120,3 +120,69 @@ the Pi and the iPad on the same Wi-Fi.
    thread + Flask server into the single `fmcafe-kiosk` entry point.
 4. Polish — bigger toddler-sized touch targets, a print confirmation
    animation, maybe a tap sound effect.
+
+## Deployment: running on the Pi at boot
+
+`UsbPrinter.print_ready()` prints a short "READY TO SERVE!" slip (subject to
+the same rare malfunction easter egg as normal receipts) — call it once at
+the start of `fmcafe.gpio.buttons.run()` and `fmcafe.kiosk.run.main()`, right
+after creating the shared `Throttle`, so both boot paths confirm the
+printer/service came up. It also consumes one throttle window itself, so an
+eager button press right at boot still respects the cooldown.
+
+To start `fmcafe-kiosk` automatically on boot via `systemd`:
+
+1. One-time setup on the Pi:
+   ```
+   cd ~/FMCafe
+   uv sync
+   ```
+   This creates `.venv/` with all dependencies and the `fmcafe-kiosk` console
+   script installed inside it.
+
+2. Grant the printer permission without root, via a udev rule (adjust the
+   vendor/product IDs if `lsusb` shows different values for your unit):
+   ```
+   sudo tee /etc/udev/rules.d/99-escpos.rules <<'EOF'
+   SUBSYSTEM=="usb", ATTR{idVendor}=="04b8", ATTR{idProduct}=="0202", MODE="0666"
+   EOF
+   sudo udevadm control --reload-rules && sudo udevadm trigger
+   ```
+   Also make sure the user running the service is in the `gpio` group
+   (`sudo usermod -aG gpio pi`) — usually already the case on Raspberry Pi OS.
+
+3. Create `/etc/systemd/system/fmcafe-kiosk.service`:
+   ```ini
+   [Unit]
+   Description=F&M Cafe kiosk (GPIO buttons + order web app)
+   After=network-online.target
+   Wants=network-online.target
+
+   [Service]
+   Type=simple
+   User=pi
+   WorkingDirectory=/home/pi/FMCafe
+   ExecStart=/home/pi/FMCafe/.venv/bin/fmcafe-kiosk
+   Restart=on-failure
+   RestartSec=5
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+   Calling the venv's script directly (rather than `uv run fmcafe-kiosk`)
+   avoids `uv` re-resolving the project on every boot.
+
+4. Enable and start it:
+   ```
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now fmcafe-kiosk
+   ```
+
+5. Check it's alive / debug:
+   ```
+   sudo systemctl status fmcafe-kiosk
+   sudo journalctl -u fmcafe-kiosk -f
+   ```
+
+After any code changes, `git pull && uv sync` (only needed if dependencies
+changed) then `sudo systemctl restart fmcafe-kiosk`.

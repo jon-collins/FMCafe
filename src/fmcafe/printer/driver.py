@@ -4,6 +4,8 @@ Default USB IDs are for the Epson TM-T20II; override them if your unit
 enumerates differently (check with `lsusb` on the Pi).
 """
 
+from datetime import datetime
+
 from escpos.printer import Usb
 
 from fmcafe.printer.malfunction import garbled_lines, is_malfunctioning
@@ -57,6 +59,25 @@ class UsbPrinter:
             p.set(align="center", bold=False)
             p.text(f"\n{receipt.footer}\n")
 
+        p.text("\n\n")
+        p.cut()
+
+    def print_ready(self) -> None:
+        """Print a short slip on startup so it's obvious the printer/service came up OK."""
+        if is_malfunctioning():
+            self._print_malfunction()
+            return
+
+        p = self._printer
+        p.set(align="center", bold=True, width=2, height=2)
+        p.text("F&M Cafe\n")
+        p.set(align="center", bold=False, width=1, height=1)
+        p.text(f"{datetime.now():%Y-%m-%d %H:%M}\n")
+        p.text("-" * 32 + "\n")
+        p.set(align="center", bold=True)
+        p.text("READY TO SERVE!\n")
+        p.set(align="center", bold=False)
+        p.text("Buttons and the order app\nare both online.\n")
         p.text("\n\n")
         p.cut()
 

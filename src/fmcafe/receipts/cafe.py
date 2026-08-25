@@ -41,6 +41,12 @@ DRINKS = [
 ]
 
 
+TITLE = "F&M Cafe"
+FOOTER = "Thanks for visiting!"
+SECTIONS = {"Food": FOOD, "Drinks": DRINKS}
+SECTION_ORDER = ["Food", "Drinks"]
+
+
 def generate() -> Receipt:
     food = [
         LineItem(name=item.name, price=item.price, category="Food")
@@ -52,9 +58,9 @@ def generate() -> Receipt:
     ]
     return Receipt(
         theme="cafe",
-        title="F&M Cafe",
+        title=TITLE,
         items=food + drinks,
-        footer="Thanks for visiting!",
+        footer=FOOTER,
         logo=logo_path("cafe"),
-        section_order=["Food", "Drinks"],
+        section_order=SECTION_ORDER,
     )

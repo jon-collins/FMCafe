@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>{{ title }}</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #222;
+      color: #fff;
+      margin: 0;
+      padding: 1rem 1rem 12rem;
+    }
+    header { display: flex; align-items: center; justify-content: space-between; }
+    header a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 1.2rem;
+      padding: 0.5rem 0.8rem;
+      background: #444;
+      border-radius: 8px;
+    }
+    h1 { font-size: 1.5rem; margin: 0; }
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin: 1.5rem 0 0.75rem;
+    }
+    .items {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+    .item {
+      position: relative;
+      border: none;
+      border-radius: 14px;
+      padding: 0.75rem;
+      color: #fff;
+      font-family: inherit;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .item .icon {
+      width: 128px;
+      height: 128px;
+      margin: 0 auto 0.5rem;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      overflow: hidden;
+    }
+    .item .icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .item .name { font-size: 0.95rem; font-weight: bold; }
+    .item .price { font-size: 0.85rem; opacity: 0.9; }
+    .item .badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #fff;
+      color: #222;
+      border-radius: 50%;
+      min-width: 28px;
+      height: 28px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    }
+    .item.selected .badge { display: flex; }
+    .item:active { transform: scale(0.96); }
+    .item .remove-btn {
+      position: absolute;
+      top: -8px;
+      left: -8px;
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: bold;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    }
+    .item.selected .remove-btn { display: flex; }
+    .item .remove-btn:active { transform: scale(0.9); }
+
+    #cart {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #111;
+      border-top: 3px solid #444;
+      padding: 1rem;
+      max-height: 40vh;
+      overflow-y: auto;
+    }
+    #cart-rows { margin-bottom: 0.75rem; }
+    .cart-row { display: flex; justify-content: space-between; padding: 0.15rem 0; }
+    .cart-empty { opacity: 0.6; }
+    #cart-total {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      font-size: 1.2rem;
+      border-top: 1px solid #444;
+      padding-top: 0.5rem;
+    }
+    #cart-actions { display: flex; gap: 1rem; margin-top: 0.75rem; }
+    #cart-actions button {
+      flex: 1;
+      padding: 1rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+    }
+    #clear-btn { background: #555; color: #fff; }
+    #print-btn { background: #2e8b57; color: #fff; }
+    #print-btn:disabled { background: #555; opacity: 0.6; }
+    #status { text-align: center; margin-top: 0.5rem; min-height: 1.2rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="{{ url_for('index') }}">&larr; Back</a>
+    <h1>{{ title }}</h1>
+    <span></span>
+  </header>
+
+  {% for section, items in sections.items() %}
+    <div class="section-title">{{ section }}</div>
+    <div class="items">
+      {% for item in items %}
+        <div
+          class="item"
+          role="button"
+          tabindex="0"
+          style="background: {{ item.name | tile_color }}"
+          data-name="{{ item.name }}"
+          data-price="{{ item.price }}"
+          onclick="addItem(this)"
+        >
+          <button class="remove-btn" onclick="removeItem(event, this)" aria-label="Remove one">&minus;</button>
+          <span class="badge">0</span>
+          <div class="icon">
+            {% if item.name | has_icon %}
+              <img src="{{ url_for('item_icon', slug=item.name | slugify) }}" alt="">
+            {% else %}
+              {{ item.name | initials }}
+            {% endif %}
+          </div>
+          <div class="name">{{ item.name }}</div>
+          <div class="price">{{ item.price | format_price }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+
+  <div id="cart">
+    <div id="cart-rows"><div class="cart-empty">No items yet &mdash; tap something above!</div></div>
+    <div id="cart-total"><span>Total</span><span id="cart-total-amount">&pound;0.00</span></div>
+    <div id="cart-actions">
+      <button id="clear-btn" onclick="clearCart()">Clear</button>
+      <button id="print-btn" onclick="printOrder()">Print Receipt</button>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const theme = {{ theme | tojson }};
+    const cart = {};
+
+    function addItem(el) {
+      const name = el.dataset.name;
+      cart[name] = (cart[name] || 0) + 1;
+      updateTile(el, cart[name]);
+      renderCart();
+    }
+
+    function removeItem(event, btn) {
+      event.stopPropagation();
+      const el = btn.closest(".item");
+      const name = el.dataset.name;
+      if (!cart[name]) return;
+      cart[name] -= 1;
+      updateTile(el, cart[name]);
+      renderCart();
+    }
+
+    function updateTile(el, qty) {
+      el.classList.toggle("selected", qty > 0);
+      el.querySelector(".badge").textContent = qty;
+    }
+
+    function renderCart() {
+      const rows = document.getElementById("cart-rows");
+      const entries = Object.entries(cart).filter(([, qty]) => qty > 0);
+
+      if (entries.length === 0) {
+        rows.innerHTML = '<div class="cart-empty">No items yet &mdash; tap something above!</div>';
+      } else {
+        rows.innerHTML = entries
+          .map(([name, qty]) => {
+            const price = document.querySelector(`[data-name="${CSS.escape(name)}"]`).dataset.price;
+            const lineTotal = (price * qty).toFixed(2);
+            return `<div class="cart-row"><span>${qty} &times; ${name}</span><span>&pound;${lineTotal}</span></div>`;
+          })
+          .join("");
+      }
+
+      const total = entries.reduce((sum, [name, qty]) => {
+        const price = parseFloat(document.querySelector(`[data-name="${CSS.escape(name)}"]`).dataset.price);
+        return sum + price * qty;
+      }, 0);
+      document.getElementById("cart-total-amount").textContent = "£" + total.toFixed(2);
+    }
+
+    function clearCart() {
+      for (const name of Object.keys(cart)) {
+        cart[name] = 0;
+      }
+      document.querySelectorAll(".item").forEach((el) => updateTile(el, 0));
+      renderCart();
+      setStatus("");
+    }
+
+    function setStatus(message) {
+      document.getElementById("status").textContent = message;
+    }
+
+    async function printOrder() {
+      const entries = Object.entries(cart).filter(([, qty]) => qty > 0);
+      if (entries.length === 0) {
+        setStatus("Add something to the order first!");
+        return;
+      }
+
+      const printBtn = document.getElementById("print-btn");
+      printBtn.disabled = true;
+      setStatus("Printing...");
+
+      try {
+        const response = await fetch(`/api/print/${theme}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(Object.fromEntries(entries)),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          setStatus("Receipt printed! 🧾");
+          clearCart();
+        } else if (data.status === "cooling_down") {
+          setStatus("Printer's still warming up from the last order — try again shortly.");
+        } else {
+          setStatus("Couldn't print that order.");
+        }
+      } catch (err) {
+        setStatus("Couldn't reach the printer.");
+      } finally {
+        printBtn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
