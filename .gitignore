@@ -1,0 +1,25 @@
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Test/tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ComfyUI scratch output (generated icons land here before curation;
+# the ones actually used by the kiosk live in src/fmcafe/kiosk/imgs/)
+comfyui/output/
+
+# OS cruft
+.DS_Store
+Thumbs.db

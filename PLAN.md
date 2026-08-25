@@ -65,9 +65,30 @@ with randomized, weighted item selection (including low-probability silly/funny
 items), grouped sections with a trailing category and an "empty section" label,
 full-width theme logos, a configurable currency symbol, a rare simulated printer
 malfunction (garbled output), and a shared print throttle (10s cooldown across
-all buttons) in the GPIO listener. Not yet done: anything on the real hardware
-(USB IDs/profile are assumed, unverified; GPIO pins are placeholders), and a
-supermarket logo image.
+all buttons) in the GPIO listener. Not yet done: GPIO pins are still placeholders
+(decide when wiring the Pi), and a supermarket logo image.
+
+**Hardware confirmed working (2026-08-25)**: the physical Epson TM-T20II
+arrived and was tested over USB from a Windows PC. Its real USB IDs are
+`VID_04B8&PID_0E15` (Device Manager) — `driver.py`'s hardcoded default was
+wrong (`0x0202`, from unverified web research) and has been corrected. A raw
+ESC/POS test print (align/bold/width/height/cut — the same primitives
+`UsbPrinter` uses) was sent via Windows' print spooler (`Win32Raw` backend,
+a temporary "Generic / Text Only" printer queue) and printed correctly.
+
+Note for next time we touch USB printing on Windows: `python-escpos`'s `Usb`
+backend (`pyusb`) needs the `usb` extra to even import (`python-escpos[usb]`,
+now in `pyproject.toml`) — without it you get a confusing "usb library not
+installed" error. Beyond that, pyusb needs a **libusb** backend, and on
+Windows the printer is normally claimed by the stock `usbprint.sys` class
+driver, which blocks libusb from opening it — pyusb raises `NoBackendError`.
+Fixing that for real USB access requires Zadig to rebind the device's
+interface to WinUSB (admin, and the device stops working as a normal Windows
+printer until reverted) — we deliberately skipped that and used the Windows
+spooler instead, since it isn't relevant on the Pi anyway: Linux's libusb
+opens the device directly once a udev rule grants permission, no
+Zadig-equivalent needed. This means `UsbPrinter`/`fmcafe-kiosk` still hasn't
+been run for real — that first real test will happen directly on the Pi.
 
 ## Phase 2: Order-builder web app (iPad kiosk)
 

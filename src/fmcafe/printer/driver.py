@@ -1,7 +1,8 @@
 """Real printer backend, using python-escpos over USB.
 
-Default USB IDs are for the Epson TM-T20II; override them if your unit
-enumerates differently (check with `lsusb` on the Pi).
+Default USB IDs are for our Epson TM-T20II, confirmed via Windows Device
+Manager (VID_04B8&PID_0E15). Override them if your unit enumerates
+differently -- check with `lsusb` on the Pi, or Device Manager on Windows.
 """
 
 from datetime import datetime
@@ -12,7 +13,7 @@ from fmcafe.printer.malfunction import garbled_lines, is_malfunctioning
 from fmcafe.receipts.base import EMPTY_SECTION_LABEL, Receipt, format_price, load_full_width_logo
 
 DEFAULT_VENDOR_ID = 0x04B8
-DEFAULT_PRODUCT_ID = 0x0202
+DEFAULT_PRODUCT_ID = 0x0E15
 PROFILE = "TM-T20II"
 
 
