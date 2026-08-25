@@ -8,10 +8,10 @@ from fmcafe.printer.throttle import PRINT_COOLDOWN_SECONDS, Throttle
 from fmcafe.receipts import THEMES
 
 BUTTON_PINS = {
-    "cafe": 2,
-    "ice_cream": 3,
-    "restaurant": 4,
-    "supermarket": 5,
+    "cafe": 5,
+    "ice_cream": 6,
+    "restaurant": 13,
+    "supermarket": 19,
 }
 
 
