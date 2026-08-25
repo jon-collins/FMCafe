@@ -159,18 +159,30 @@ To start `fmcafe-kiosk` automatically on boot via `systemd`:
    uv sync
    ```
    This creates `.venv/` with all dependencies and the `fmcafe-kiosk` console
-   script installed inside it.
+   script installed inside it. Two gotchas hit on our test Pi (Raspberry Pi OS
+   with Python 3.13):
+   - **Pillow needs image library headers to compile** (no prebuilt wheel yet
+     for that Python/arch combo): `sudo apt install -y libjpeg-dev zlib1g-dev
+     libfreetype6-dev liblcms2-dev libopenjp2-7-dev libtiff5-dev libwebp-dev`
+     (try `libtiff-dev` if `libtiff5-dev` isn't found), then re-run `uv sync`.
+   - **`gpiozero` needs a real pin-access backend.** Without one it silently
+     falls back to an experimental backend using the old `/sys/class/gpio`
+     interface, which raises `OSError: [Errno 22] Invalid argument` on modern
+     kernels. Fixed by adding `lgpio` (Linux-only) to `pyproject.toml`'s
+     dependencies — already done, `uv sync` installs it automatically.
 
 2. Grant the printer permission without root, via a udev rule (adjust the
    vendor/product IDs if `lsusb` shows different values for your unit):
    ```
-   sudo tee /etc/udev/rules.d/99-escpos.rules <<'EOF'
-   SUBSYSTEM=="usb", ATTR{idVendor}=="04b8", ATTR{idProduct}=="0202", MODE="0666"
-   EOF
-   sudo udevadm control --reload-rules && sudo udevadm trigger
+sudo tee /etc/udev/rules.d/99-escpos.rules <<'EOF'
+SUBSYSTEM=="usb", ATTR{idVendor}=="04b8", ATTR{idProduct}=="0e15", MODE="0666"
+EOF
+sudo udevadm control --reload-rules && sudo udevadm trigger
    ```
    Also make sure the user running the service is in the `gpio` group
-   (`sudo usermod -aG gpio pi`) — usually already the case on Raspberry Pi OS.
+   (`sudo usermod -aG gpio <your-username>`) — usually already the case on
+   Raspberry Pi OS. **Substitute your actual username for `pi` everywhere
+   below** (our test Pi's user is `jon`, so paths are `/home/jon/FMCafe`).
 
 3. Create `/etc/systemd/system/fmcafe-kiosk.service`:
    ```ini
@@ -181,9 +193,9 @@ To start `fmcafe-kiosk` automatically on boot via `systemd`:
 
    [Service]
    Type=simple
-   User=pi
-   WorkingDirectory=/home/pi/FMCafe
-   ExecStart=/home/pi/FMCafe/.venv/bin/fmcafe-kiosk
+   User=jon
+   WorkingDirectory=/home/jon/FMCafe
+   ExecStart=/home/jon/FMCafe/.venv/bin/fmcafe-kiosk
    Restart=on-failure
    RestartSec=5
 
