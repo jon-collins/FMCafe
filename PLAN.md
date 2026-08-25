@@ -58,3 +58,65 @@ FMCafe/
 - Exact GPIO pin assignments per button/theme (decide when wiring the Pi)
 - Whether receipts should have any randomization vs. fixed templates per theme
 - Any physical enclosure / button labeling for the kids
+
+## Status (as of this phase)
+Phases 1–4 above are done: four themes (cafe, ice cream, restaurant, supermarket)
+with randomized, weighted item selection (including low-probability silly/funny
+items), grouped sections with a trailing category and an "empty section" label,
+full-width theme logos, a configurable currency symbol, a rare simulated printer
+malfunction (garbled output), and a shared print throttle (10s cooldown across
+all buttons) in the GPIO listener. Not yet done: anything on the real hardware
+(USB IDs/profile are assumed, unverified; GPIO pins are placeholders), and a
+supermarket logo image.
+
+## Phase 2: Order-builder web app (iPad kiosk)
+
+### Goal
+Instead of only pressing a button for a random receipt, let a kid build an
+actual order by tapping pictures of items (an apple, a coffee, etc.) on an
+iPad, then print the receipt that matches exactly what they picked. Runs as a
+small web app hosted on the Pi's local network — no internet required, just
+the Pi and the iPad on the same Wi-Fi.
+
+### Key decisions
+- **Runs alongside the GPIO buttons**, not instead of them — both stay
+  available, and both must share one `UsbPrinter` + one `Throttle` instance so
+  they can't overrun the physical printer between them. This means combining
+  the GPIO listener and the new Flask app into a single process/entry point
+  (`fmcafe-kiosk`) rather than two independent scripts.
+- **Item pictures**: simple icons rather than raw emoji text (consistent look
+  across devices) or real photos (too much asset work for 60+ items across 4
+  themes). Plan is to start with generated placeholder icon tiles so every
+  item has *something* immediately, then swap in nicer icons for the common
+  items over time without blocking the rest.
+- **Ordering interaction**: tap-to-add cart. Tapping an item's tile adds one
+  to the order (tap again for more), a running list + total is shown, with
+  "Clear" and "Print Receipt" actions. Cart state lives client-side in the
+  browser and is only sent to the server on print — no server-side session
+  needed for a single shared iPad.
+- **Open question**: whether the low-probability silly/funny menu items (e.g.
+  "Sock Puppet Sandwich") should be tappable in the manual order UI too, or
+  whether manual ordering only shows the normal menu and silly items stay
+  exclusive to the random button-press flow.
+
+### New pieces
+- `receipts/order.py` — `build_receipt_from_cart(theme, item_counts) -> Receipt`,
+  reusing the existing `Receipt`/`LineItem`/`section_order` model so mock
+  rendering, real printing, the malfunction easter egg, and the throttle all
+  keep working unchanged for manually-built orders.
+- `kiosk/app.py` (+ templates/static) — Flask app: a theme-picker landing page,
+  one order page per theme (grid of item tiles grouped by section, cart panel,
+  print button), sized for touch on an iPad.
+- A combined `fmcafe-kiosk` entry point that starts the GPIO listener thread
+  and the Flask server together, bound to `0.0.0.0` so the iPad can reach it
+  at the Pi's local address (e.g. `raspberrypi.local:5000`).
+
+### Build order
+1. `build_receipt_from_cart` — content layer only, unit-testable without any UI.
+2. Kiosk Flask routes/templates, dev-tested against the mock printer first
+   (same pattern as the existing preview server) so the flow is provable on a
+   regular machine before touching the Pi.
+3. Wire the shared `UsbPrinter` + `Throttle` singleton and combine the GPIO
+   thread + Flask server into the single `fmcafe-kiosk` entry point.
+4. Polish — bigger toddler-sized touch targets, a print confirmation
+   animation, maybe a tap sound effect.

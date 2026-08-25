@@ -6,6 +6,7 @@ enumerates differently (check with `lsusb` on the Pi).
 
 from escpos.printer import Usb
 
+from fmcafe.printer.malfunction import garbled_lines, is_malfunctioning
 from fmcafe.receipts.base import EMPTY_SECTION_LABEL, Receipt, format_price, load_full_width_logo
 
 DEFAULT_VENDOR_ID = 0x04B8
@@ -23,6 +24,10 @@ class UsbPrinter:
         self._printer = Usb(vendor_id, product_id, profile=profile)
 
     def print_receipt(self, receipt: Receipt) -> None:
+        if is_malfunctioning():
+            self._print_malfunction()
+            return
+
         p = self._printer
         if receipt.logo is not None:
             p.set(align="center")
@@ -52,5 +57,13 @@ class UsbPrinter:
             p.set(align="center", bold=False)
             p.text(f"\n{receipt.footer}\n")
 
+        p.text("\n\n")
+        p.cut()
+
+    def _print_malfunction(self) -> None:
+        p = self._printer
+        p.set(align="left")
+        for line in garbled_lines():
+            p.text(f"{line}\n")
         p.text("\n\n")
         p.cut()

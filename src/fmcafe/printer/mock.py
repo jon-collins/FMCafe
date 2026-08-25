@@ -4,6 +4,7 @@ import base64
 from html import escape
 from io import BytesIO
 
+from fmcafe.printer.malfunction import garbled_lines, is_malfunctioning
 from fmcafe.receipts.base import EMPTY_SECTION_LABEL, Receipt, format_price, load_full_width_logo
 
 
@@ -29,7 +30,15 @@ def _section_html(section: str, items: list) -> str:
     return f'<div class="section">{escape(section)}</div>\n{body}'
 
 
+def _render_malfunction_html() -> str:
+    lines = "\n".join(f'<div class="glitch-line">{escape(line)}</div>' for line in garbled_lines())
+    return f'<div class="receipt glitch">{lines}</div>'
+
+
 def render_html(receipt: Receipt) -> str:
+    if is_malfunctioning():
+        return _render_malfunction_html()
+
     sections_html = "\n".join(
         _section_html(section, items) for section, items in receipt.sections
     )

@@ -40,11 +40,11 @@ EXTRAS = [
 def generate() -> Receipt:
     scoops = [
         LineItem(name=item.name, price=item.price, category="Ice Cream")
-        for item in weighted_sample(ICE_CREAM, k=random.randint(1, 2))
+        for item in weighted_sample(ICE_CREAM, k=random.randint(1, 3))
     ]
     extras = [
         LineItem(name=item.name, price=item.price, category="Extras")
-        for item in weighted_sample(EXTRAS, k=random.randint(0, 2))
+        for item in weighted_sample(EXTRAS, k=random.randint(0, 5))
     ]
     return Receipt(
         theme="ice_cream",
