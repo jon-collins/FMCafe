@@ -19,6 +19,7 @@ fmcafe = "fmcafe:main"
 fmcafe-preview = "fmcafe.devserver.app:main"
 fmcafe-kiosk = "fmcafe.kiosk.run:main"
 fmcafe-kiosk-preview = "fmcafe.kiosk.app:main"
+fmcafe-scan-buttons = "fmcafe.gpio.scan_buttons:main"
 
 [build-system]
 requires = ["uv_build>=0.10.6,<0.11.0"]

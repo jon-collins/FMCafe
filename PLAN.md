@@ -159,17 +159,19 @@ To start `fmcafe-kiosk` automatically on boot via `systemd`:
    uv sync
    ```
    This creates `.venv/` with all dependencies and the `fmcafe-kiosk` console
-   script installed inside it. Two gotchas hit on our test Pi (Raspberry Pi OS
-   with Python 3.13):
-   - **Pillow needs image library headers to compile** (no prebuilt wheel yet
-     for that Python/arch combo): `sudo apt install -y libjpeg-dev zlib1g-dev
-     libfreetype6-dev liblcms2-dev libopenjp2-7-dev libtiff5-dev libwebp-dev`
-     (try `libtiff-dev` if `libtiff5-dev` isn't found), then re-run `uv sync`.
+   script installed inside it. Gotchas hit on our test Pi (Raspberry Pi OS
+   with Python 3.13), all needing an `apt install` + re-run of `uv sync`
+   since none of these packages have prebuilt wheels for that combo yet:
+   - **Pillow needs image library headers to compile**: `sudo apt install -y
+     libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev libopenjp2-7-dev
+     libtiff5-dev libwebp-dev` (try `libtiff-dev` if `libtiff5-dev` isn't found).
    - **`gpiozero` needs a real pin-access backend.** Without one it silently
      falls back to an experimental backend using the old `/sys/class/gpio`
      interface, which raises `OSError: [Errno 22] Invalid argument` on modern
      kernels. Fixed by adding `lgpio` (Linux-only) to `pyproject.toml`'s
-     dependencies — already done, `uv sync` installs it automatically.
+     dependencies.
+   - **`lgpio` itself needs `swig` and a C compiler to build**: `sudo apt
+     install -y swig build-essential python3-dev`.
 
 2. Grant the printer permission without root, via a udev rule (adjust the
    vendor/product IDs if `lsusb` shows different values for your unit):
