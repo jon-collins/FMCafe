@@ -41,21 +41,24 @@ class UsbPrinter:
         p.text(f"{receipt.title}\n")
         p.set(align="center", bold=False, width=1, height=1)
         p.text(f"{receipt.timestamp:%Y-%m-%d %H:%M}\n")
-        p.text("-" * 32 + "\n")
+        p.text("-" * 48 + "\n")
 
         for section, items in receipt.sections:
-            p.set(align="left", bold=True)
+            p.set(align="center", bold=True)
             p.text(f"{section}\n")
-            p.set(align="left", bold=False)
+            p.set(align="center", bold=False)
             if items:
                 for item in items:
-                    p.text(f"{item.name:<24}{format_price(item.price):>8}\n")
+                    p.text(f"{item.name:<40}{format_price(item.price):>8}\n")
             else:
                 p.text(f"{EMPTY_SECTION_LABEL}\n")
-        p.text("-" * 32 + "\n")
+        
 
-        p.set(align="right", bold=True)
-        p.text(f"TOTAL: {format_price(receipt.total)}\n")
+        p.set(align="center", bold=True)
+        p.text(f"{'TOTAL':<40} {format_price(receipt.total):>8}\n")
+
+        p.set(align="center", bold=False, width=1, height=1)
+        p.text("-" * 48 + "\n")
 
         if receipt.footer:
             p.set(align="center", bold=False)
@@ -75,7 +78,7 @@ class UsbPrinter:
         p.text("F&M Cafe\n")
         p.set(align="center", bold=False, width=1, height=1)
         p.text(f"{datetime.now():%Y-%m-%d %H:%M}\n")
-        p.text("-" * 32 + "\n")
+        p.text("-" * 48 + "\n")
         p.set(align="center", bold=True)
         p.text("READY TO SERVE!\n")
         p.set(align="center", bold=False)
