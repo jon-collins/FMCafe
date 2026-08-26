@@ -57,7 +57,7 @@ class UsbPrinter:
         
 
         p.set(align="center", bold=True)
-        p.text(f"{'TOTAL':<40} {format_price(receipt.total):>8}\n")
+        p.text(f"{'TOTAL':<40}{format_price(receipt.total):>8}\n")
 
         p.set(align="center", bold=False, width=1, height=1)
         p.text("-" * 48 + "\n")
