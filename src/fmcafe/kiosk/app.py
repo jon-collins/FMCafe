@@ -70,7 +70,12 @@ def create_app(printer: Printer, throttle: Throttle) -> Flask:
         if not throttle.ready():
             return jsonify(status="cooling_down"), 429
 
-        printer.print_receipt(build_receipt_from_cart(theme, item_counts))
+        try:
+            printer.print_receipt(build_receipt_from_cart(theme, item_counts))
+        except Exception as exc:
+            print(f"[kiosk] printer error: {exc}")
+            return jsonify(status="printer_offline"), 503
+
         return jsonify(status="printed")
 
     return app

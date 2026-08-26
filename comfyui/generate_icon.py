@@ -117,6 +117,7 @@ def main() -> None:
         output_path = args.output
     else:
         slug = slugify(args.name) if args.name else slugify(args.item)
+        slug = slug.replace("_", "-")
         output_path = Path(__file__).parent / "output" / f"{slug}.png"
 
     print(f"Submitting prompt for {args.item!r}...")

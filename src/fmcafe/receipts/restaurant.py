@@ -17,11 +17,7 @@ FOOD = [
     MenuItem("Fries", 3.00),
     MenuItem("Tacos", 6.50),
     MenuItem("Cheese Sandwich", 5.00),
-    MenuItem("Dragon Tail Stew", 9.50, weight=SILLY_WEIGHT),
-    MenuItem("Spaghetti and Meatball Tower", 10.00, weight=SILLY_WEIGHT),
-    MenuItem("Mystery Meat Surprise", 7.00, weight=SILLY_WEIGHT),
-    MenuItem("Sock Puppet Sandwich", 5.50, weight=SILLY_WEIGHT),
-    MenuItem("Triple Cheese Volcano", 8.50, weight=SILLY_WEIGHT),
+
 ]
 
 DRINKS = [
@@ -31,9 +27,7 @@ DRINKS = [
     MenuItem("Lemonade", 2.50),
     MenuItem("Milkshake", 4.00),
     MenuItem("Iced Tea", 2.75),
-    MenuItem("Swamp Water Slushie", 3.00, weight=SILLY_WEIGHT),
-    MenuItem("Purple People Punch", 3.25, weight=SILLY_WEIGHT),
-    MenuItem("Fizzy Frog Soda", 2.75, weight=SILLY_WEIGHT),
+
 ]
 
 

@@ -10,6 +10,7 @@ from datetime import datetime
 from escpos.printer import Usb
 
 from fmcafe.printer.malfunction import garbled_lines, is_malfunctioning
+from fmcafe.printer.throttle import Throttle
 from fmcafe.receipts.base import EMPTY_SECTION_LABEL, Receipt, format_price, load_full_width_logo
 
 DEFAULT_VENDOR_ID = 0x04B8
@@ -89,3 +90,16 @@ class UsbPrinter:
             p.text(f"{line}\n")
         p.text("\n\n")
         p.cut()
+
+
+def announce_ready(printer: UsbPrinter, throttle: Throttle) -> None:
+    """Print the boot-time ready slip if the printer is reachable; never raises.
+
+    Lets the GPIO listener / kiosk web server start up even when the printer
+    is unplugged, powered off, or otherwise unreachable.
+    """
+    try:
+        printer.print_ready()
+        throttle.ready()  # only reserve the cooldown window if it actually printed
+    except Exception as exc:
+        print(f"[fmcafe] printer not available at startup: {exc}")

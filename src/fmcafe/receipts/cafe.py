@@ -17,11 +17,7 @@ FOOD = [
     MenuItem("Bacon Roll", 3.75),
     MenuItem("Avocado Toast", 4.50),
     MenuItem("Fruit Salad", 3.00),
-    MenuItem("Dinosaur Egg Muffin", 5.00, weight=SILLY_WEIGHT),
     MenuItem("Unicorn Pancakes", 6.50, weight=SILLY_WEIGHT),
-    MenuItem("Wizard's Beard Waffle", 5.25, weight=SILLY_WEIGHT),
-    MenuItem("Mystery Mush", 1.00, weight=SILLY_WEIGHT),
-    MenuItem("Giant's Toenail Toast", 2.00, weight=SILLY_WEIGHT),
 ]
 
 DRINKS = [
@@ -34,10 +30,7 @@ DRINKS = [
     MenuItem("Milkshake", 4.00),
     MenuItem("Lemonade", 2.50),
     MenuItem("Iced Tea", 2.75),
-    MenuItem("Dragon's Breath Cocoa", 4.50, weight=SILLY_WEIGHT),
-    MenuItem("Glitter Fizz", 3.25, weight=SILLY_WEIGHT),
-    MenuItem("Swamp Juice", 2.00, weight=SILLY_WEIGHT),
-    MenuItem("Bubblegum Volcano Shake", 5.00, weight=SILLY_WEIGHT),
+
 ]
 
 

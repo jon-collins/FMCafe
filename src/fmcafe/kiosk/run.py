@@ -4,25 +4,18 @@ Runs the GPIO buttons and the kiosk web app together, sharing one UsbPrinter
 and one Throttle so neither path can overrun the physical printer.
 """
 
-from fmcafe.gpio.buttons import BUTTON_PINS, make_handler
+from fmcafe.gpio.buttons import setup_buttons
 from fmcafe.kiosk.app import create_app
-from fmcafe.printer.driver import UsbPrinter
+from fmcafe.printer.driver import UsbPrinter, announce_ready
 from fmcafe.printer.throttle import PRINT_COOLDOWN_SECONDS, Throttle
 
 
 def main() -> None:
-    from gpiozero import Button
-
     printer = UsbPrinter()
     throttle = Throttle(PRINT_COOLDOWN_SECONDS)
-    printer.print_ready()
-    throttle.ready()  # counts the ready print itself against the cooldown
+    announce_ready(printer, throttle)
 
-    buttons = []
-    for theme, pin in BUTTON_PINS.items():
-        button = Button(pin)
-        button.when_pressed = make_handler(theme, printer, throttle)
-        buttons.append(button)
+    setup_buttons(printer, throttle)
 
     app = create_app(printer, throttle)
     app.run(host="0.0.0.0", port=5000)

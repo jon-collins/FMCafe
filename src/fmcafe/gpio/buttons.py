@@ -3,7 +3,7 @@
 Update BUTTON_PINS with the actual GPIO pin each button is wired to.
 """
 
-from fmcafe.printer.driver import UsbPrinter
+from fmcafe.printer.driver import UsbPrinter, announce_ready
 from fmcafe.printer.throttle import PRINT_COOLDOWN_SECONDS, Throttle
 from fmcafe.receipts import THEMES
 
@@ -22,25 +22,41 @@ def make_handler(theme: str, printer: UsbPrinter, throttle: Throttle):
         if not throttle.ready():
             return
         receipt = generate()
-        printer.print_receipt(receipt)
+        try:
+            printer.print_receipt(receipt)
+        except Exception as exc:
+            print(f"[fmcafe] printer error: {exc}")
 
     return handler
+
+
+def setup_buttons(printer: UsbPrinter, throttle: Throttle) -> list:
+    """Wire up all configured buttons; returns an empty list if GPIO isn't available.
+
+    Lets the kiosk web app / this listener still run for local debugging on a
+    machine without real GPIO hardware (e.g. a dev PC), instead of crashing.
+    """
+    try:
+        from gpiozero import Button
+
+        buttons = []
+        for theme, pin in BUTTON_PINS.items():
+            button = Button(pin)
+            button.when_pressed = make_handler(theme, printer, throttle)
+            buttons.append(button)
+        return buttons
+    except Exception as exc:
+        print(f"[fmcafe] GPIO not available, buttons disabled: {exc}")
+        return []
 
 
 def run() -> None:
     from signal import pause  # not available on Windows; only needed on the Pi
 
-    from gpiozero import Button
-
     printer = UsbPrinter()
     throttle = Throttle(PRINT_COOLDOWN_SECONDS)
-    printer.print_ready()
-    throttle.ready()  # counts the ready print itself against the cooldown
+    announce_ready(printer, throttle)
 
-    buttons = []
-    for theme, pin in BUTTON_PINS.items():
-        button = Button(pin)
-        button.when_pressed = make_handler(theme, printer, throttle)
-        buttons.append(button)
+    setup_buttons(printer, throttle)
 
     pause()

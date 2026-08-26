@@ -129,3 +129,15 @@ def test_print_endpoint_unknown_theme_404s():
     client = make_client()
     response = client.post("/api/print/not-a-theme", json={"x": 1})
     assert response.status_code == 404
+
+
+def test_print_endpoint_reports_printer_offline_without_crashing():
+    printer = MockPrinter()
+    printer.print_receipt = lambda receipt: (_ for _ in ()).throw(RuntimeError("no backend"))
+    app = create_app(printer, Throttle(cooldown_seconds=0))
+    client = app.test_client()
+
+    response = client.post("/api/print/cafe", json={"Muffin": 1})
+
+    assert response.status_code == 503
+    assert response.get_json()["status"] == "printer_offline"

@@ -272,6 +272,8 @@
           clearCart();
         } else if (data.status === "cooling_down") {
           setStatus("Printer's still warming up from the last order — try again shortly.");
+        } else if (data.status === "printer_offline") {
+          setStatus("Printer isn't connected right now — check the cable and try again.");
         } else {
           setStatus("Couldn't print that order.");
         }
