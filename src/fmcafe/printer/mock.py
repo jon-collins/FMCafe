@@ -4,6 +4,8 @@ import base64
 from html import escape
 from io import BytesIO
 
+from PIL import Image
+
 from fmcafe.printer.malfunction import garbled_lines, is_malfunctioning
 from fmcafe.receipts.base import EMPTY_SECTION_LABEL, Receipt, format_price, load_full_width_logo
 
@@ -64,3 +66,9 @@ class MockPrinter:
 
     def print_receipt(self, receipt: Receipt) -> None:
         self.last_html = render_html(receipt)
+
+    def print_photo(self, image: Image.Image) -> None:
+        buffer = BytesIO()
+        image.save(buffer, format="PNG")
+        data = base64.b64encode(buffer.getvalue()).decode("ascii")
+        self.last_html = f'<div class="receipt"><img src="data:image/png;base64,{data}" alt=""></div>'

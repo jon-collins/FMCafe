@@ -1,12 +1,21 @@
+from io import BytesIO
 from unittest.mock import patch
 
 from markupsafe import escape
+from PIL import Image
 
 from fmcafe.kiosk import app as kiosk_app
 from fmcafe.kiosk.app import create_app
 from fmcafe.printer.mock import MockPrinter
 from fmcafe.printer.throttle import Throttle
 from fmcafe.receipts.order import THEME_MODULES
+
+
+def make_test_png() -> BytesIO:
+    buffer = BytesIO()
+    Image.new("RGB", (200, 100), "red").save(buffer, format="PNG")
+    buffer.seek(0)
+    return buffer
 
 
 def make_client(cooldown_seconds=0.0):
@@ -138,6 +147,78 @@ def test_print_endpoint_reports_printer_offline_without_crashing():
     client = app.test_client()
 
     response = client.post("/api/print/cafe", json={"Muffin": 1})
+
+    assert response.status_code == 503
+    assert response.get_json()["status"] == "printer_offline"
+
+
+def test_photo_page_renders():
+    client = make_client()
+    response = client.get("/photo")
+    assert response.status_code == 200
+    assert b"Print a Photo" in response.data
+
+
+def test_print_photo_endpoint_prints_uploaded_image():
+    client = make_client()
+    response = client.post(
+        "/api/print-photo",
+        data={"photo": (make_test_png(), "test.png")},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 200
+    assert response.get_json()["status"] == "printed"
+
+
+def test_print_photo_endpoint_rejects_missing_file():
+    client = make_client()
+    response = client.post("/api/print-photo", data={}, content_type="multipart/form-data")
+    assert response.status_code == 400
+    assert response.get_json()["status"] == "empty"
+
+
+def test_print_photo_endpoint_rejects_non_image_file():
+    client = make_client()
+    response = client.post(
+        "/api/print-photo",
+        data={"photo": (BytesIO(b"not an image"), "test.png")},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 400
+    assert response.get_json()["status"] == "invalid_image"
+
+
+def test_print_photo_endpoint_respects_shared_throttle():
+    app = create_app(MockPrinter(), Throttle(cooldown_seconds=10.0))
+    client = app.test_client()
+
+    first = client.post(
+        "/api/print-photo",
+        data={"photo": (make_test_png(), "test.png")},
+        content_type="multipart/form-data",
+    )
+    second = client.post(
+        "/api/print-photo",
+        data={"photo": (make_test_png(), "test.png")},
+        content_type="multipart/form-data",
+    )
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.get_json()["status"] == "cooling_down"
+
+
+def test_print_photo_endpoint_reports_printer_offline_without_crashing():
+    printer = MockPrinter()
+    printer.print_photo = lambda image: (_ for _ in ()).throw(RuntimeError("no backend"))
+    app = create_app(printer, Throttle(cooldown_seconds=0))
+    client = app.test_client()
+
+    response = client.post(
+        "/api/print-photo",
+        data={"photo": (make_test_png(), "test.png")},
+        content_type="multipart/form-data",
+    )
 
     assert response.status_code == 503
     assert response.get_json()["status"] == "printer_offline"

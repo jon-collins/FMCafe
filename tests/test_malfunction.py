@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
 
+from PIL import Image
+
 from fmcafe.printer import driver, mock
 from fmcafe.printer.malfunction import GLITCH_CHARS, garbled_lines
 from fmcafe.printer.throttle import Throttle
@@ -68,3 +70,24 @@ def test_announce_ready_reserves_the_cooldown_window_on_success():
 
     printer.print_ready.assert_called_once()
     assert throttle.ready() is False  # already reserved by the ready print
+
+
+def test_print_photo_resizes_and_prints_the_image():
+    with patch.object(driver, "Usb", return_value=MagicMock()):
+        printer = driver.UsbPrinter()
+        with patch.object(driver, "is_malfunctioning", return_value=False):
+            printer.print_photo(Image.new("RGB", (1000, 500), "red"))
+
+    printer._printer.cut.assert_called_once()
+    printed_image = printer._printer.image.call_args[0][0]
+    assert printed_image.width == 576
+
+
+def test_print_photo_can_also_glitch():
+    with patch.object(driver, "Usb", return_value=MagicMock()):
+        printer = driver.UsbPrinter()
+        with patch.object(driver, "is_malfunctioning", return_value=True):
+            printer.print_photo(Image.new("RGB", (1000, 500), "red"))
+
+    printer._printer.cut.assert_called_once()
+    assert printer._printer.image.call_count == 0

@@ -6,6 +6,7 @@ its throttle with the GPIO buttons) on the Pi.
 """
 
 from flask import Flask, abort, jsonify, render_template, request, send_file
+from PIL import Image
 
 from fmcafe.printer.interface import Printer
 from fmcafe.printer.mock import MockPrinter
@@ -15,14 +16,21 @@ from fmcafe.receipts.order import THEME_MODULES, build_receipt_from_cart
 
 from .icons import icon_path, initials, slugify, tile_color
 
+MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+
 
 def create_app(printer: Printer, throttle: Throttle) -> Flask:
     app = Flask(__name__)
+    app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES
     app.jinja_env.filters["tile_color"] = tile_color
     app.jinja_env.filters["initials"] = initials
     app.jinja_env.filters["format_price"] = format_price
     app.jinja_env.filters["slugify"] = slugify
     app.jinja_env.filters["has_icon"] = lambda name: icon_path(name) is not None
+
+    @app.errorhandler(413)
+    def too_large(_exc):
+        return jsonify(status="too_large"), 413
 
     @app.route("/")
     def index():
@@ -72,6 +80,33 @@ def create_app(printer: Printer, throttle: Throttle) -> Flask:
 
         try:
             printer.print_receipt(build_receipt_from_cart(theme, item_counts))
+        except Exception as exc:
+            print(f"[kiosk] printer error: {exc}")
+            return jsonify(status="printer_offline"), 503
+
+        return jsonify(status="printed")
+
+    @app.route("/photo")
+    def photo():
+        return render_template("photo.html")
+
+    @app.route("/api/print-photo", methods=["POST"])
+    def print_photo():
+        file = request.files.get("photo")
+        if file is None or file.filename == "":
+            return jsonify(status="empty"), 400
+
+        try:
+            image = Image.open(file.stream)
+            image.load()  # decode now, so a corrupt file errors here, not mid-print
+        except Exception:
+            return jsonify(status="invalid_image"), 400
+
+        if not throttle.ready():
+            return jsonify(status="cooling_down"), 429
+
+        try:
+            printer.print_photo(image)
         except Exception as exc:
             print(f"[kiosk] printer error: {exc}")
             return jsonify(status="printer_offline"), 503

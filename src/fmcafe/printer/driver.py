@@ -8,7 +8,9 @@ differently -- check with `lsusb` on the Pi, or Device Manager on Windows.
 from datetime import datetime
 
 from escpos.printer import Usb
+from PIL import Image
 
+from fmcafe.printer.imaging import resize_to_printer_width
 from fmcafe.printer.malfunction import garbled_lines, is_malfunctioning
 from fmcafe.printer.throttle import Throttle
 from fmcafe.receipts.base import EMPTY_SECTION_LABEL, Receipt, format_price, load_full_width_logo
@@ -83,6 +85,22 @@ class UsbPrinter:
         p.text("READY TO SERVE!\n")
         p.set(align="center", bold=False)
         p.text("Buttons and the order app\nare both online.\n")
+        p.text("\n\n")
+        p.cut()
+
+    def print_photo(self, image: Image.Image) -> None:
+        """Print an uploaded photo, resized to fit the paper width."""
+        if is_malfunctioning():
+            self._print_malfunction()
+            return
+
+        p = self._printer
+        p.set(align="center", bold=True, width=2, height=2)
+        p.text("Photo Booth\n")
+        p.set(align="center", bold=False, width=1, height=1)
+        p.text(f"{datetime.now():%Y-%m-%d %H:%M}\n")
+        p.text("-" * 48 + "\n")
+        p.image(resize_to_printer_width(image))
         p.text("\n\n")
         p.cut()
 

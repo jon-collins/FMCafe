@@ -10,12 +10,10 @@ from pathlib import Path
 
 from PIL import Image
 
+from fmcafe.printer.imaging import PRINTER_WIDTH_PX, resize_to_printer_width
+
 SILLY_WEIGHT = 0.1
 """Relative pick weight for silly/funny menu items vs. a normal item's weight of 1.0."""
-
-# Epson TM-T20II printable width at 203 dpi (72mm / 576px), per its
-# escpos-printer-db capability profile.
-PRINTER_WIDTH_PX = 576
 
 CURRENCY_SYMBOL = "£"
 
@@ -85,6 +83,4 @@ def logo_path(theme: str) -> Path | None:
 
 def load_full_width_logo(logo: Path, width: int = PRINTER_WIDTH_PX) -> Image.Image:
     """Load a logo and resize it to span the full receipt width, keeping aspect ratio."""
-    image = Image.open(logo)
-    height = round(image.height * (width / image.width))
-    return image.resize((width, height))
+    return resize_to_printer_width(Image.open(logo), width)
