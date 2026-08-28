@@ -13,27 +13,18 @@ ICE_CREAM = [
     MenuItem("Mango Scoop", 2.75),
     MenuItem("Bubblegum Scoop", 2.75),
     MenuItem("Salted Caramel Scoop", 2.75),
-    MenuItem("Dragon Fire Scoop", 3.00, weight=SILLY_WEIGHT),
-    MenuItem("Alien Slime Scoop", 3.00, weight=SILLY_WEIGHT),
-    MenuItem("Unicorn Sparkle Scoop", 3.25, weight=SILLY_WEIGHT),
-    MenuItem("Stinky Cheese Scoop", 2.75, weight=SILLY_WEIGHT),
-    MenuItem("Baked Bean Scoop", 2.75, weight=SILLY_WEIGHT),
+
 ]
 
 EXTRAS = [
     MenuItem("Sprinkles", 0.50),
     MenuItem("Waffle Cone", 1.00),
-    MenuItem("Hot Fudge", 0.75),
     MenuItem("Whipped Cream", 0.50),
     MenuItem("Cherry", 0.25),
     MenuItem("Marshmallows", 0.50),
     MenuItem("Caramel Sauce", 0.75),
     MenuItem("Chocolate Chips", 0.50),
     MenuItem("Crushed Nuts", 0.60),
-    MenuItem("Gummy Worms", 0.60, weight=SILLY_WEIGHT),
-    MenuItem("Popping Candy", 0.75, weight=SILLY_WEIGHT),
-    MenuItem("Pickle Bits", 0.50, weight=SILLY_WEIGHT),
-    MenuItem("Glitter Dust", 0.80, weight=SILLY_WEIGHT),
 ]
 
 
