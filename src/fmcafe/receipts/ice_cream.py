@@ -12,17 +12,13 @@ ICE_CREAM = [
     MenuItem("Cookie Dough Scoop", 2.75),
     MenuItem("Mango Scoop", 2.75),
     MenuItem("Bubblegum Scoop", 2.75),
-    MenuItem("Salted Caramel Scoop", 2.75),
 
 ]
 
 EXTRAS = [
     MenuItem("Sprinkles", 0.50),
-    MenuItem("Waffle Cone", 1.00),
-    MenuItem("Whipped Cream", 0.50),
     MenuItem("Cherry", 0.25),
     MenuItem("Marshmallows", 0.50),
-    MenuItem("Caramel Sauce", 0.75),
     MenuItem("Chocolate Chips", 0.50),
     MenuItem("Crushed Nuts", 0.60),
 ]
